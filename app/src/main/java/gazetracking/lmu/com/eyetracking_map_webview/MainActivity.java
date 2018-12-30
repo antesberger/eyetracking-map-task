@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -45,27 +46,31 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         mDetector = new GestureDetectorCompat(this,this);
         mDetector.setOnDoubleTapListener(this);
 
-        //init headline of logs
-        String log = String.format(Locale.GERMAN, "%s; %s; %s; %s; %s, %s; %s, %s; %s, %s, %s, %s; %s",
-                "pointerId",
-                "eventTime",
-                "action",
-                "relativeX",
-                "relativeY",
-                "rawX",
-                "rawY",
-                "xPrecision",
-                "yPrecision",
-                "downTime",
-                "orientation",
-                "pressure",
-                "size",
-                "edgeFlags",
-                "actionButton",
-                "metaState"
-        );
+        //initialize headline of motionEvent log
+        writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt","pointerID; eventTime; action; relativeX; relativeY; rawX; rawY; xPrecision; yPrecision; downTime; orientation; pressure; size; edgeFlags; actionButton; metaState; toolType; toolMajor; toolMinor;");
 
-        writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt", log);
+        webView.clearCache(true);
+        webView.clearHistory();
+        webView.clearFormData();
+        webView.clearMatches();
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                view.loadUrl(request.getUrl().toString());
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        WebView webView = findViewById(R.id.webview);
+        if (webView.canGoBack()) {
+            webView.goBack();
+            if (webView.canGoBack()) {
+                webView.goBack();
+            }
+        }
     }
 
     View.OnTouchListener onTouchListener = new View.OnTouchListener() {
@@ -95,8 +100,11 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                         Integer edgeFlags = null;
                         Integer actionButton = null;
                         Integer metaState = null;
+                        Integer toolType = null;
+                        Float toolMajor = event.getHistoricalToolMajor(p, h);
+                        Float toolMinor = event.getHistoricalToolMinor(p, h);
 
-                        String log = String.format(Locale.GERMAN, "%d; %o; %s; %f; %f, %f; %f, %f; %f, %o, %f, %f; %f",
+                        String log = String.format(Locale.GERMAN, "%d; %o; %s; %f; %f; %f; %f; %f; %f; %o; %f; %f; %f; %d; %d; %d; %d; %f; %f;",
                                 pointerId,
                                 eventTime,
                                 action,
@@ -112,10 +120,14 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                                 size,
                                 edgeFlags,
                                 actionButton,
-                                metaState
+                                metaState,
+                                toolType,
+                                toolMajor,
+                                toolMinor
                         );
 
                         writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt", log);
+                        writeFileOnInternalStorage(MainActivity.this, "rawHistoricalEvent.txt", event.toString());
                     } catch (Exception e) {
                         Log.e("Historical", "onTouch", e );
                     }
@@ -141,8 +153,11 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     Integer edgeFlags = event.getEdgeFlags();
                     Integer actionButton = event.getActionButton();
                     Integer metaState = event.getMetaState();
+                    Integer toolType = event.getToolType(p);
+                    Float toolMajor = event.getToolMajor(p);
+                    Float toolMinor = event.getToolMinor(p);
 
-                    String log = String.format(Locale.GERMAN, "%d; %o; %s; %f; %f, %f; %f, %f; %f, %o, %f, %f; %f",
+                    String log = String.format(Locale.GERMAN, "%d; %o; %s; %f; %f; %f; %f; %f; %f; %o; %f; %f; %f; %d; %d; %d; %d; %f; %f;",
                             pointerId,
                             eventTime,
                             action,
@@ -158,10 +173,14 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                             size,
                             edgeFlags,
                             actionButton,
-                            metaState
+                            metaState,
+                            toolType,
+                            toolMajor,
+                            toolMinor
                     );
 
                     writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt", log);
+                    writeFileOnInternalStorage(MainActivity.this, "rawEvent.txt", event.toString());
                 } catch (Exception e) {
                     Log.e("Historical", "onTouch", e );
                 }
