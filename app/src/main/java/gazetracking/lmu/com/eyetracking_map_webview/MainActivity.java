@@ -1,6 +1,7 @@
 package gazetracking.lmu.com.eyetracking_map_webview;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -9,10 +10,13 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        CookieManager.getInstance().removeAllCookies(null);
+        CookieManager.getInstance().flush();
+
         Bundle bundle = getIntent().getExtras();
         if(bundle != null)
             participant = bundle.getString("participant");
@@ -38,7 +45,14 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         WebView webView = findViewById(R.id.webview);
 
         WebSettings webSettings = webView.getSettings();
+        webSettings.setAppCacheEnabled(false);
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         webSettings.setJavaScriptEnabled(true);
+
+        webView.clearCache(true);
+        webView.clearHistory();
+        webView.clearFormData();
+        webView.clearMatches();
 
         webView.loadUrl("https://www.google.de/maps");
 
@@ -48,11 +62,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         //initialize headline of motionEvent log
         writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt","pointerID; eventTime; action; relativeX; relativeY; rawX; rawY; xPrecision; yPrecision; downTime; orientation; pressure; size; edgeFlags; actionButton; metaState; toolType; toolMajor; toolMinor;");
-
-        webView.clearCache(true);
-        webView.clearHistory();
-        webView.clearFormData();
-        webView.clearMatches();
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -60,6 +69,40 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 return false;
             }
         });
+
+        final Button nextButton = findViewById(R.id.nextButton);
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                writeFileOnInternalStorage(MainActivity.this, "log.txt", "subTask finished");
+                Log.d("test", "onClick: " + nextButton.getText());
+                if(nextButton.getText().toString().equals("1/2")) {
+                    nextButton.setText("2/2");
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Good! Please look for a restaurant now.",
+                            Toast.LENGTH_LONG
+                    ).show();
+                } else if(nextButton.getText().toString().equals("2/2")) {
+                    Intent intent = new Intent(MainActivity.this, StartScreen.class);
+                    startActivity(intent);
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Thank you! You're done with this task.",
+                            Toast.LENGTH_LONG
+                    ).show();
+                } else {
+                    Log.d("test", "onClick: nothing");
+                }
+            }
+        });
+
+        Toast.makeText(
+            MainActivity.this,
+            "Press the 1/2 Button when you found your destination.",
+            Toast.LENGTH_LONG
+        ).show();
+
     }
 
     @Override
