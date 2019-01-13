@@ -91,8 +91,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                             "Thank you! You're done with this task.",
                             Toast.LENGTH_LONG
                     ).show();
-                } else {
-                    Log.d("test", "onClick: nothing");
                 }
             }
         });
