@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         CookieManager.getInstance().removeAllCookies(null);
         CookieManager.getInstance().flush();
 
+        writeFileOnInternalStorage(MainActivity.this, "log.txt", "task started");
+
         Bundle bundle = getIntent().getExtras();
         if(bundle != null)
             participant = bundle.getString("participant");
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                             Toast.LENGTH_LONG
                     ).show();
                 } else if(nextButton.getText().toString().equals("2/2")) {
+                    writeFileOnInternalStorage(MainActivity.this, "log.txt", "task ended");
                     Intent intent = new Intent(MainActivity.this, StartScreen.class);
                     startActivity(intent);
                     Toast.makeText(
