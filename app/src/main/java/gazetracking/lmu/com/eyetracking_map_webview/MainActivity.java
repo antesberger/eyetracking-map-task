@@ -37,73 +37,83 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         CookieManager.getInstance().removeAllCookies(null);
         CookieManager.getInstance().flush();
 
-        writeFileOnInternalStorage(MainActivity.this, "log.txt", "task started");
-
         Bundle bundle = getIntent().getExtras();
         if(bundle != null)
             participant = bundle.getString("participant");
             startTime = bundle.getString("startTime");
 
-        WebView webView = findViewById(R.id.webview);
+        if (hasEyetrackingStarted()) {
 
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setAppCacheEnabled(false);
-        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webSettings.setJavaScriptEnabled(true);
+            writeFileOnInternalStorage(MainActivity.this, "log.txt", "task started");
 
-        webView.clearCache(true);
-        webView.clearHistory();
-        webView.clearFormData();
-        webView.clearMatches();
+            WebView webView = findViewById(R.id.webview);
 
-        webView.loadUrl("https://www.google.de/maps");
+            WebSettings webSettings = webView.getSettings();
+            webSettings.setAppCacheEnabled(false);
+            webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+            webSettings.setJavaScriptEnabled(true);
 
-        webView.setOnTouchListener(onTouchListener);
-        mDetector = new GestureDetectorCompat(this,this);
-        mDetector.setOnDoubleTapListener(this);
+            webView.clearCache(true);
+            webView.clearHistory();
+            webView.clearFormData();
+            webView.clearMatches();
 
-        //initialize headline of motionEvent log
-        writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt","pointerID; eventTime; action; relativeX; relativeY; rawX; rawY; xPrecision; yPrecision; downTime; orientation; pressure; size; edgeFlags; actionButton; metaState; toolType; toolMajor; toolMinor;");
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                view.loadUrl(request.getUrl().toString());
-                return false;
-            }
-        });
+            webView.loadUrl("https://www.google.de/maps");
 
-        final Button nextButton = findViewById(R.id.nextButton);
-        nextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                writeFileOnInternalStorage(MainActivity.this, "log.txt", "subTask finished");
-                Log.d("test", "onClick: " + nextButton.getText());
-                if(nextButton.getText().toString().equals("1/2")) {
-                    nextButton.setText("2/2");
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Good! Please look for a restaurant now.",
-                            Toast.LENGTH_LONG
-                    ).show();
-                } else if(nextButton.getText().toString().equals("2/2")) {
-                    writeFileOnInternalStorage(MainActivity.this, "log.txt", "task ended");
-                    Intent intent = new Intent(MainActivity.this, StartScreen.class);
-                    startActivity(intent);
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Thank you! You're done with this task.",
-                            Toast.LENGTH_LONG
-                    ).show();
+            webView.setOnTouchListener(onTouchListener);
+            mDetector = new GestureDetectorCompat(this,this);
+            mDetector.setOnDoubleTapListener(this);
+
+            //initialize headline of motionEvent log
+            writeFileOnInternalStorage(MainActivity.this, "motionEvents.txt","pointerID; eventTime; action; relativeX; relativeY; rawX; rawY; xPrecision; yPrecision; downTime; orientation; pressure; size; edgeFlags; actionButton; metaState; toolType; toolMajor; toolMinor;");
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    view.loadUrl(request.getUrl().toString());
+                    return false;
                 }
-            }
-        });
+            });
 
-        Toast.makeText(
-            MainActivity.this,
-            "Press the 1/2 Button when you found your destination.",
-            Toast.LENGTH_LONG
-        ).show();
+            final Button nextButton = findViewById(R.id.nextButton);
+            nextButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    writeFileOnInternalStorage(MainActivity.this, "log.txt", "subTask finished");
+                    Log.d("test", "onClick: " + nextButton.getText());
+                    if(nextButton.getText().toString().equals("1/2")) {
+                        nextButton.setText("2/2");
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Good! Please look for a restaurant now.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    } else if(nextButton.getText().toString().equals("2/2")) {
+                        writeFileOnInternalStorage(MainActivity.this, "log.txt", "task ended");
+                        Intent intent = new Intent(MainActivity.this, StartScreen.class);
+                        startActivity(intent);
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Thank you! You're done with this task.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+            });
 
+            Toast.makeText(
+                MainActivity.this,
+                "Press the 1/2 Button when you found your destination.",
+                Toast.LENGTH_LONG
+            ).show();
+        } else {
+            Intent intent = new Intent(MainActivity.this, StartScreen.class);
+            startActivity(intent);
+            Toast.makeText(
+                    MainActivity.this,
+                    "Recheck your ID and make sure that the eyetracking has started",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     @Override
@@ -290,13 +300,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         return false;
     }
 
+    public boolean hasEyetrackingStarted() {
+        File file = new File(MainActivity.this.getFilesDir(), participant + "_" + startTime);
+        if(!file.exists()){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public void writeFileOnInternalStorage(Context mcoContext, String sFileName, String sBody){
         SimpleDateFormat timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         File file = new File(mcoContext.getFilesDir(), participant + "_" + startTime);
-
-        if(!file.exists()){
-            file.mkdir();
-        }
 
         try{
             File outFile = new File(file, sFileName);
