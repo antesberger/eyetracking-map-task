@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     writeFileOnInternalStorage(MainActivity.this, "log.txt", "subTask finished");
                     Log.d("test", "onClick: " + nextButton.getText());
                     if(nextButton.getText().toString().equals("1/2")) {
+                        WebView webView = findViewById(R.id.webview);
+                        webView.loadUrl("https://www.google.com/maps/place/K%C3%B6lner+Dom/@50.9411702,6.9584316,18z/data=!3m1!5s0x47bf25baabc20433:0x312b7d4db7d02b48!4m5!3m4!1s0x47bf25a5369c3d2f:0x29ec913896e3a9c6!8m2!3d50.9412784!4d6.9582814");
                         nextButton.setText("2/2");
                         Toast.makeText(
                                 MainActivity.this,
